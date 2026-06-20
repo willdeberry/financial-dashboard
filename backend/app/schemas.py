@@ -84,6 +84,11 @@ class TransactionCategoryUpdate(BaseModel):
     category_id: int
 
 
+class TransactionBulkCategoryUpdate(BaseModel):
+    transaction_ids: List[int]
+    category_id: int
+
+
 class UploadHistoryResponse(BaseModel):
     id: int
     filename: str

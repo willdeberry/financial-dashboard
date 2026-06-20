@@ -65,6 +65,24 @@ def list_transactions(
     return {"total": total, "page": page, "page_size": page_size, "items": items}
 
 
+@router.put("/transactions/bulk-category")
+def bulk_update_category(
+    update: schemas.TransactionBulkCategoryUpdate,
+    db: Session = Depends(get_db),
+):
+    if not update.transaction_ids:
+        raise HTTPException(status_code=400, detail="No transaction IDs provided")
+    if not db.query(models.Category).filter(models.Category.id == update.category_id).first():
+        raise HTTPException(status_code=404, detail="Category not found")
+    updated = (
+        db.query(models.Transaction)
+        .filter(models.Transaction.id.in_(update.transaction_ids))
+        .update({"category_id": update.category_id}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated}
+
+
 @router.put("/transactions/{transaction_id}/category", response_model=schemas.TransactionResponse)
 def update_transaction_category(
     transaction_id: int,

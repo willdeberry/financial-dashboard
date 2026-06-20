@@ -23,6 +23,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category_id: categoryId }),
     }),
+  bulkUpdateCategory: (transactionIds, categoryId) =>
+    request('/transactions/bulk-category', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transaction_ids: transactionIds, category_id: categoryId }),
+    }),
 
   getCategories: () => request('/categories'),
   createCategory: (data) =>
