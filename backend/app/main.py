@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base, SessionLocal
 from .categorizer import seed_default_data
-from .routes import uploads, transactions, categories, analytics
+from .routes import uploads, transactions, categories, analytics, debug
 from .utils import logger
 
 
@@ -41,3 +41,4 @@ app.include_router(uploads.router)
 app.include_router(transactions.router)
 app.include_router(categories.router)
 app.include_router(analytics.router)
+app.include_router(debug.router)
