@@ -15,7 +15,7 @@ const COLS = [
   { key: 'category', label: 'Category' },
 ]
 
-export default function TransactionTable({ transactions, categories, onRefresh }) {
+export default function TransactionTable({ transactions, categories, onCategoryUpdated, onBulkCategoryUpdated }) {
   const [editingId, setEditingId] = useState(null)
   const [selected, setSelected] = useState(new Set())
   const [bulkCategoryId, setBulkCategoryId] = useState('')
@@ -43,9 +43,10 @@ export default function TransactionTable({ transactions, categories, onRefresh }
 
   const handleCategoryChange = async (txId, catId) => {
     if (!catId) return
+    const categoryId = parseInt(catId, 10)
     try {
-      await api.updateTransactionCategory(txId, parseInt(catId, 10))
-      onRefresh()
+      await api.updateTransactionCategory(txId, categoryId)
+      onCategoryUpdated(txId, categoryId)
     } catch (err) {
       alert('Failed to update: ' + err.message)
     }
@@ -54,12 +55,14 @@ export default function TransactionTable({ transactions, categories, onRefresh }
 
   const handleBulkApply = async () => {
     if (!bulkCategoryId || selected.size === 0) return
+    const categoryId = parseInt(bulkCategoryId, 10)
     setBulkSaving(true)
     try {
-      await api.bulkUpdateCategory([...selected], parseInt(bulkCategoryId, 10))
+      const ids = [...selected]
+      await api.bulkUpdateCategory(ids, categoryId)
+      onBulkCategoryUpdated(ids, categoryId)
       setSelected(new Set())
       setBulkCategoryId('')
-      onRefresh()
     } catch (err) {
       alert('Failed to update: ' + err.message)
     } finally {

@@ -68,6 +68,21 @@ export default function Dashboard() {
     setPage(1)
   }
 
+  const handleCategoryUpdated = useCallback((txId, categoryId) => {
+    const category = categories.find(c => c.id === categoryId) || null
+    setTransactions(prev => prev.map(t =>
+      t.id === txId ? { ...t, category_id: categoryId, category } : t
+    ))
+  }, [categories])
+
+  const handleBulkCategoryUpdated = useCallback((txIds, categoryId) => {
+    const category = categories.find(c => c.id === categoryId) || null
+    const idSet = new Set(txIds)
+    setTransactions(prev => prev.map(t =>
+      idSet.has(t.id) ? { ...t, category_id: categoryId, category } : t
+    ))
+  }, [categories])
+
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
@@ -108,7 +123,8 @@ export default function Dashboard() {
           <TransactionTable
             transactions={transactions}
             categories={categories}
-            onRefresh={() => fetchAll(filters, page)}
+            onCategoryUpdated={handleCategoryUpdated}
+            onBulkCategoryUpdated={handleBulkCategoryUpdated}
           />
 
           {totalPages > 1 && (
