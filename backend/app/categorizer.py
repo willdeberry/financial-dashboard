@@ -101,6 +101,20 @@ DEFAULT_RULES = [
         "priority": 10,
     },
     {
+        "rule_name": "Bank deposit (income)",
+        "match_field": "description",
+        "match_pattern": r"(?i)^deposit from",
+        "category_name": "Salary/Income",
+        "priority": 11,
+    },
+    {
+        "rule_name": "Interest income",
+        "match_field": "description",
+        "match_pattern": r"(?i)monthly interest paid",
+        "category_name": "Salary/Income",
+        "priority": 11,
+    },
+    {
         "rule_name": "Transfers",
         "match_field": "description",
         "match_pattern": r"(?i)(transfer|zelle|venmo|paypal|cash app)",
