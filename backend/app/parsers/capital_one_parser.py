@@ -120,8 +120,6 @@ def parse_capital_one_statement(file_content: bytes) -> List[Dict]:
                 transaction_type = 'transfer' if any(
                     kw in description.upper() for kw in (
                         'TRANSFER', 'ZELLE', 'VENMO', 'WEBXFR', 'P2P',
-                        # Internal Capital One accounts (masked account numbers)
-                        'XXXXXXX',
                         # Credit card payments — avoid double-counting charges from CC statements
                         'AMERICAN EXPRESS', 'AMEX', 'COMENITY', 'DISCOVER', 'CHASE',
                         'CITIBANK', 'CITI CARD', 'CAPITAL ONE PYMT', 'SYNCHRONY',
