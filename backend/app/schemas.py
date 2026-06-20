@@ -38,9 +38,20 @@ class CategoryCreate(CategoryBase):
     pass
 
 
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+
+
+class CategoryMoveTransactions(BaseModel):
+    target_category_id: int
+
+
 class CategoryResponse(CategoryBase):
     id: int
     created_at: datetime
+    transaction_count: int = 0
 
     model_config = {"from_attributes": True}
 

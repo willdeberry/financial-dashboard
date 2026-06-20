@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import Dashboard from './components/Dashboard.jsx'
 import Upload from './components/Upload.jsx'
+import Categories from './components/Categories.jsx'
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard' },
+  { id: 'categories', label: 'Categories' },
   { id: 'upload', label: 'Upload Statements' },
 ]
 
@@ -52,9 +54,9 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {tab === 'dashboard' ? (
-          <Dashboard key={dashKey} />
-        ) : (
+        {tab === 'dashboard' && <Dashboard key={dashKey} />}
+        {tab === 'categories' && <Categories />}
+        {tab === 'upload' && (
           <Upload onSuccess={() => { setDashKey(k => k + 1); setTab('dashboard') }} />
         )}
       </main>

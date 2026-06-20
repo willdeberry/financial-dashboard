@@ -6,6 +6,7 @@ async function request(path, options = {}) {
     const err = await res.json().catch(() => ({ detail: 'Request failed' }))
     throw new Error(err.detail || 'Request failed')
   }
+  if (res.status === 204) return null
   return res.json()
 }
 
@@ -29,6 +30,22 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
+    }),
+  updateCategory: (id, data) =>
+    request(`/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+  deleteCategory: (id, reassignTo) =>
+    request(`/categories/${id}${reassignTo != null ? `?reassign_to=${reassignTo}` : ''}`, {
+      method: 'DELETE',
+    }),
+  moveTransactions: (fromId, toId) =>
+    request(`/categories/${fromId}/move-transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_category_id: toId }),
     }),
 
   uploadFile: (file, sourceType) => {
