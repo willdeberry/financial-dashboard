@@ -7,14 +7,19 @@ from ..categorizer import categorize_transaction
 from ..parsers.bank_parser import parse_bank_statement
 from ..parsers.credit_card_parser import parse_credit_card_statement
 from ..parsers.payroll_parser import parse_payroll_stub
+from ..parsers.capital_one_csv_parser import parse_capital_one_csv
 from ..utils import logger
 
 router = APIRouter()
 
-PARSERS = {
+PDF_PARSERS = {
     "bank": parse_bank_statement,
     "credit_card": parse_credit_card_statement,
     "payroll": parse_payroll_stub,
+}
+
+CSV_PARSERS = {
+    "bank": parse_capital_one_csv,
 }
 
 
@@ -24,10 +29,15 @@ async def upload_file(
     source_type: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    if source_type not in PARSERS:
+    if source_type not in PDF_PARSERS:
         raise HTTPException(status_code=400, detail="source_type must be bank, credit_card, or payroll")
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    fname = file.filename.lower()
+    if fname.endswith('.csv'):
+        if source_type not in CSV_PARSERS:
+            raise HTTPException(status_code=400, detail=f"CSV upload not supported for source type '{source_type}'")
+    elif not fname.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF and CSV files are supported")
 
     upload = models.UploadHistory(filename=file.filename, source_type=source_type, status="pending")
     db.add(upload)
@@ -36,7 +46,10 @@ async def upload_file(
 
     try:
         content = await file.read()
-        raw_transactions = PARSERS[source_type](content)
+        if fname.endswith('.csv'):
+            raw_transactions = CSV_PARSERS[source_type](content)
+        else:
+            raw_transactions = PDF_PARSERS[source_type](content)
 
         # Cache category name→id for parsers that pre-classify (e.g. Amex)
         category_cache: dict = {}

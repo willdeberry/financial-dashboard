@@ -16,8 +16,12 @@ export default function Upload({ onSuccess }) {
   const [dragOver, setDragOver] = useState(false)
 
   const setFileClean = (f) => {
-    if (f && !f.name.toLowerCase().endsWith('.pdf')) {
-      setError('Only PDF files are supported.')
+    if (f && !f.name.toLowerCase().endsWith('.pdf') && !f.name.toLowerCase().endsWith('.csv')) {
+      setError('Only PDF and CSV files are supported.')
+      return
+    }
+    if (f && f.name.toLowerCase().endsWith('.csv') && sourceType !== 'bank') {
+      setError('CSV upload is only supported for Bank Statements.')
       return
     }
     setFile(f)
@@ -98,10 +102,17 @@ export default function Upload({ onSuccess }) {
             </div>
           ) : (
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Drop your PDF here or</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Drop your {sourceType === 'bank' ? 'PDF or CSV' : 'PDF'} here or
+              </p>
               <label className="cursor-pointer text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline">
                 browse
-                <input type="file" accept=".pdf" onChange={e => setFileClean(e.target.files[0])} className="sr-only" />
+                <input
+                  type="file"
+                  accept={sourceType === 'bank' ? '.pdf,.csv' : '.pdf'}
+                  onChange={e => setFileClean(e.target.files[0])}
+                  className="sr-only"
+                />
               </label>
             </div>
           )}
