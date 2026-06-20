@@ -75,9 +75,11 @@ export default function Dashboard() {
       <Summary stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <ChartCard title="Spending by Category">
-          <CategoryPie data={categoryData} />
-        </ChartCard>
+        <div className="lg:col-span-3">
+          <ChartCard title="Spending by Category">
+            <CategoryPie data={categoryData} />
+          </ChartCard>
+        </div>
         <div className="lg:col-span-2">
           <ChartCard title="Monthly Trends">
             <MonthlyTrend data={monthlyData} />

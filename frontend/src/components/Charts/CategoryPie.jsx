@@ -26,14 +26,14 @@ export default function CategoryPie({ data }) {
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
           data={chartData}
-          cx="50%"
+          cx="40%"
           cy="50%"
-          innerRadius={55}
-          outerRadius={95}
+          innerRadius={70}
+          outerRadius={120}
           paddingAngle={2}
           dataKey="value"
           labelLine={false}
@@ -44,7 +44,14 @@ export default function CategoryPie({ data }) {
           ))}
         </Pie>
         <Tooltip formatter={v => formatCurrency(v)} />
-        <Legend iconType="circle" iconSize={8} formatter={v => <span style={{ fontSize: 11 }}>{v}</span>} />
+        <Legend
+          layout="vertical"
+          align="right"
+          verticalAlign="middle"
+          iconType="circle"
+          iconSize={8}
+          formatter={v => <span style={{ fontSize: 12 }}>{v}</span>}
+        />
       </PieChart>
     </ResponsiveContainer>
   )
