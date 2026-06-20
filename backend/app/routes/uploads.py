@@ -38,9 +38,20 @@ async def upload_file(
         content = await file.read()
         raw_transactions = PARSERS[source_type](content)
 
+        # Cache category name→id for parsers that pre-classify (e.g. Amex)
+        category_cache: dict = {}
+
         count = 0
         for tx in raw_transactions:
-            category_id = categorize_transaction(db, tx.get("payee"), tx.get("description"))
+            amex_category = tx.get("amex_category")
+            if amex_category:
+                if amex_category not in category_cache:
+                    cat = db.query(models.Category).filter(models.Category.name == amex_category).first()
+                    category_cache[amex_category] = cat.id if cat else None
+                category_id = category_cache[amex_category]
+            else:
+                category_id = categorize_transaction(db, tx.get("payee"), tx.get("description"))
+
             db.add(models.Transaction(
                 date=tx["date"],
                 amount=tx["amount"],

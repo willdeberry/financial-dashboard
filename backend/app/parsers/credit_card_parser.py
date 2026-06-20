@@ -2,6 +2,12 @@ import re
 from typing import List, Dict
 from .pdf_parser import extract_text_from_pdf
 from .bank_parser import parse_date, parse_amount, DATE_PATTERNS, AMOUNT_PATTERN, SKIP_KEYWORDS
+from .amex_parser import parse_amex_year_end
+
+CC_DETECTORS = [
+    (re.compile(r'year-end summary', re.IGNORECASE), parse_amex_year_end),
+    (re.compile(r'american express', re.IGNORECASE), parse_amex_year_end),
+]
 
 CREDIT_INCOME_KEYWORDS = {'PAYMENT', 'CREDIT', 'REFUND', 'RETURN', 'ADJUSTMENT', 'REVERSAL'}
 CC_SKIP_KEYWORDS = SKIP_KEYWORDS | {'MINIMUM PAYMENT', 'CREDIT LIMIT', 'AVAILABLE CREDIT', 'ACCOUNT SUMMARY'}
@@ -9,6 +15,12 @@ CC_SKIP_KEYWORDS = SKIP_KEYWORDS | {'MINIMUM PAYMENT', 'CREDIT LIMIT', 'AVAILABL
 
 def parse_credit_card_statement(file_content: bytes) -> List[Dict]:
     pages = extract_text_from_pdf(file_content)
+    full_text = '\n'.join(pages)
+
+    for pattern, parser in CC_DETECTORS:
+        if pattern.search(full_text):
+            return parser(file_content)
+
     transactions = []
 
     for page_text in pages:
