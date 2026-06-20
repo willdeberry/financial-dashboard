@@ -88,6 +88,16 @@ export default function Filters({ categories, onFilter }) {
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Categories</label>
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => toggleSet(setSelectedCategories, 0)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+                selectedCategories.includes(0)
+                  ? 'bg-gray-500 text-white border-transparent shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Uncategorized
+            </button>
             {categories.map(cat => {
               const selected = selectedCategories.includes(cat.id)
               return (

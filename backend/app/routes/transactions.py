@@ -33,9 +33,17 @@ def list_transactions(
     if end_date:
         query = query.filter(models.Transaction.date <= end_date)
     if category_ids:
-        ids = [int(x) for x in category_ids.split(",") if x.strip().isdigit()]
-        if ids:
-            query = query.filter(models.Transaction.category_id.in_(ids))
+        ids = [int(x) for x in category_ids.split(",") if x.strip().lstrip('-').isdigit()]
+        real_ids = [i for i in ids if i != 0]
+        include_null = 0 in ids
+        if real_ids and include_null:
+            query = query.filter(
+                or_(models.Transaction.category_id.in_(real_ids), models.Transaction.category_id.is_(None))
+            )
+        elif real_ids:
+            query = query.filter(models.Transaction.category_id.in_(real_ids))
+        elif include_null:
+            query = query.filter(models.Transaction.category_id.is_(None))
     if sources:
         query = query.filter(models.Transaction.source.in_([s.strip() for s in sources.split(",")]))
     if transaction_types:
