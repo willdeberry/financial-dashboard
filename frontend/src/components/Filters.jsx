@@ -16,8 +16,8 @@ export default function Filters({ categories, onFilter }) {
 
   const apply = () =>
     onFilter({
-      start_date: startDate || undefined,
-      end_date: endDate || undefined,
+      start_date: startDate ? `${startDate}T00:00:00` : undefined,
+      end_date: endDate ? `${endDate}T23:59:59` : undefined,
       category_ids: selectedCategories.length ? selectedCategories : undefined,
       sources: sources.length ? sources : undefined,
       search: search || undefined,

@@ -87,15 +87,15 @@ def test_category_filter_alone():
 
 
 def test_date_range_alone():
-    items = get_txns(start_date="2026-02-01", end_date="2026-03-31")
+    items = get_txns(start_date="2026-02-01T00:00:00", end_date="2026-03-31T23:59:59")
     assert len(items) == 2  # Feb + Mar
 
 
 def test_category_filter_with_date_range():
     """BUG 1: category filter must still work when a date range is set."""
     items = get_txns(
-        start_date="2026-01-01",
-        end_date="2026-06-30",
+        start_date="2026-01-01T00:00:00",
+        end_date="2026-06-30T23:59:59",
         category_ids=GROCERY_ID,
     )
     assert len(items) == 2, f"Expected 2 Grocery txns, got {len(items)}: {[(t['payee'], t['date']) for t in items]}"
@@ -104,8 +104,8 @@ def test_category_filter_with_date_range():
 
 def test_multiple_categories_with_date_range():
     items = get_txns(
-        start_date="2026-01-01",
-        end_date="2026-06-30",
+        start_date="2026-01-01T00:00:00",
+        end_date="2026-06-30T23:59:59",
         category_ids=[GROCERY_ID, DINING_ID],
     )
     assert len(items) == 3, f"Expected 3 (2 grocery + 1 dining), got {len(items)}"
@@ -117,7 +117,7 @@ def test_uncategorized_filter():
 
 
 def test_uncategorized_with_date_range():
-    items = get_txns(start_date="2026-04-01", end_date="2026-04-30", category_ids=0)
+    items = get_txns(start_date="2026-04-01T00:00:00", end_date="2026-04-30T23:59:59", category_ids=0)
     assert len(items) == 1
     assert items[0]["payee"] == "Mystery"
 
@@ -129,13 +129,13 @@ def test_uncategorized_combined_with_category():
 
 
 def test_date_range_no_results():
-    items = get_txns(start_date="2025-01-01", end_date="2025-12-31")
+    items = get_txns(start_date="2025-01-01T00:00:00", end_date="2025-12-31T23:59:59")
     assert len(items) == 0
 
 
 def test_analytics_by_category_date_range():
     """BUG 2 (partial): by-category respects date range."""
-    r = client.get("/analytics/by-category", params={"transaction_type": "expense", "start_date": "2026-01-01", "end_date": "2026-01-31"})
+    r = client.get("/analytics/by-category", params={"transaction_type": "expense", "start_date": "2026-01-01T00:00:00", "end_date": "2026-01-31T23:59:59"})
     assert r.status_code == 200, r.text
     data = r.json()
     # Only January has Groceries ($80), nothing else in range
@@ -156,7 +156,7 @@ def test_analytics_by_category_no_date_range():
 def test_analytics_summary_date_range():
     """Summary numbers change when date range is applied."""
     r_all  = client.get("/analytics/summary")
-    r_jan  = client.get("/analytics/summary", params={"start_date": "2026-01-01", "end_date": "2026-01-31"})
+    r_jan  = client.get("/analytics/summary", params={"start_date": "2026-01-01T00:00:00", "end_date": "2026-01-31T23:59:59"})
     assert r_all.status_code == r_jan.status_code == 200
     total_expenses = float(r_all.json()["total_expenses"])
     jan_expenses   = float(r_jan.json()["total_expenses"])
