@@ -11,8 +11,17 @@ async function request(path, options = {}) {
 }
 
 function qs(params) {
-  const filtered = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
-  return filtered.length ? '?' + new URLSearchParams(filtered).toString() : ''
+  const search = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === '') continue
+    if (Array.isArray(v)) {
+      v.forEach(item => search.append(k, item))
+    } else {
+      search.append(k, v)
+    }
+  }
+  const str = search.toString()
+  return str ? '?' + str : ''
 }
 
 export const api = {

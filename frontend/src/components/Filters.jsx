@@ -18,8 +18,8 @@ export default function Filters({ categories, onFilter }) {
     onFilter({
       start_date: startDate || undefined,
       end_date: endDate || undefined,
-      category_ids: selectedCategories.length ? selectedCategories.join(',') : undefined,
-      sources: sources.length ? sources.join(',') : undefined,
+      category_ids: selectedCategories.length ? selectedCategories : undefined,
+      sources: sources.length ? sources : undefined,
       search: search || undefined,
       min_amount: minAmount || undefined,
       max_amount: maxAmount || undefined,

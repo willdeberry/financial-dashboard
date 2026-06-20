@@ -74,15 +74,21 @@ def analytics_by_category(
 
 
 @router.get("/analytics/monthly-trend", response_model=List[schemas.MonthlyTrend])
-def analytics_monthly_trend(year: Optional[int] = None, db: Session = Depends(get_db)):
+def analytics_monthly_trend(
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    db: Session = Depends(get_db),
+):
     query = db.query(
         func.year(models.Transaction.date).label("year"),
         func.month(models.Transaction.date).label("month"),
         _income_expr().label("income"),
         _expense_expr().label("expenses"),
     )
-    if year:
-        query = query.filter(func.year(models.Transaction.date) == year)
+    if start_date:
+        query = query.filter(models.Transaction.date >= start_date)
+    if end_date:
+        query = query.filter(models.Transaction.date <= end_date)
 
     results = query.group_by(
         func.year(models.Transaction.date), func.month(models.Transaction.date)

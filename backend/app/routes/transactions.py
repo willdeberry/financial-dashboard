@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
 from .. import models, schemas
@@ -16,9 +16,9 @@ def list_transactions(
     page_size: int = Query(50, ge=1, le=500),
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    category_ids: Optional[str] = None,
-    sources: Optional[str] = None,
-    transaction_types: Optional[str] = None,
+    category_ids: Optional[List[int]] = Query(None),
+    sources: Optional[List[str]] = Query(None),
+    transaction_types: Optional[List[str]] = Query(None),
     min_amount: Optional[Decimal] = None,
     max_amount: Optional[Decimal] = None,
     search: Optional[str] = None,
@@ -33,9 +33,8 @@ def list_transactions(
     if end_date:
         query = query.filter(models.Transaction.date <= end_date)
     if category_ids:
-        ids = [int(x) for x in category_ids.split(",") if x.strip().lstrip('-').isdigit()]
-        real_ids = [i for i in ids if i != 0]
-        include_null = 0 in ids
+        real_ids = [i for i in category_ids if i != 0]
+        include_null = 0 in category_ids
         if real_ids and include_null:
             query = query.filter(
                 or_(models.Transaction.category_id.in_(real_ids), models.Transaction.category_id.is_(None))
@@ -45,9 +44,9 @@ def list_transactions(
         elif include_null:
             query = query.filter(models.Transaction.category_id.is_(None))
     if sources:
-        query = query.filter(models.Transaction.source.in_([s.strip() for s in sources.split(",")]))
+        query = query.filter(models.Transaction.source.in_(sources))
     if transaction_types:
-        query = query.filter(models.Transaction.transaction_type.in_([t.strip() for t in transaction_types.split(",")]))
+        query = query.filter(models.Transaction.transaction_type.in_(transaction_types))
     if min_amount is not None:
         query = query.filter(models.Transaction.amount >= min_amount)
     if max_amount is not None:

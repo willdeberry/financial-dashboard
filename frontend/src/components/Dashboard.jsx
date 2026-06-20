@@ -42,7 +42,7 @@ export default function Dashboard() {
         api.getCategories(),
         api.getSummary(dateParams),
         api.getByCategory({ ...dateParams, transaction_type: 'expense' }),
-        api.getMonthlyTrend(),
+        api.getMonthlyTrend(dateParams),
         api.getTopSpenders({ ...dateParams, limit: 8 }),
       ])
       setTransactions(txRes.items || [])
