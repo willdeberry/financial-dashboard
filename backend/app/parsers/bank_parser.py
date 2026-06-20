@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import List, Dict, Optional
 from .pdf_parser import extract_text_from_pdf
+from .capital_one_parser import parse_capital_one_statement
 
 
 DATE_PATTERNS = [
@@ -42,8 +43,19 @@ def parse_amount(amount_str: str) -> Optional[Decimal]:
         return None
 
 
+BANK_DETECTORS = [
+    (re.compile(r'capital one', re.IGNORECASE), parse_capital_one_statement),
+]
+
+
 def parse_bank_statement(file_content: bytes) -> List[Dict]:
     pages = extract_text_from_pdf(file_content)
+    full_text = '\n'.join(pages)
+
+    for pattern, parser in BANK_DETECTORS:
+        if pattern.search(full_text):
+            return parser(file_content)
+
     transactions = []
 
     for page_text in pages:
