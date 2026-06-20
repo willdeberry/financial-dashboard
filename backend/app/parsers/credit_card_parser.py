@@ -3,10 +3,12 @@ from typing import List, Dict
 from .pdf_parser import extract_text_from_pdf
 from .bank_parser import parse_date, parse_amount, DATE_PATTERNS, AMOUNT_PATTERN, SKIP_KEYWORDS
 from .amex_parser import parse_amex_year_end
+from .amex_monthly_parser import parse_amex_monthly
 
 CC_DETECTORS = [
+    # Year-end must come before monthly — both are Amex but different formats
     (re.compile(r'year-end summary', re.IGNORECASE), parse_amex_year_end),
-    (re.compile(r'american express', re.IGNORECASE), parse_amex_year_end),
+    (re.compile(r'closing date\s*\d{2}/\d{2}/\d{2}', re.IGNORECASE), parse_amex_monthly),
 ]
 
 CREDIT_INCOME_KEYWORDS = {'PAYMENT', 'CREDIT', 'REFUND', 'RETURN', 'ADJUSTMENT', 'REVERSAL'}
