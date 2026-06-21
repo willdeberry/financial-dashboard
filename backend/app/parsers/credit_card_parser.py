@@ -5,12 +5,15 @@ from .bank_parser import parse_date, parse_amount, DATE_PATTERNS, AMOUNT_PATTERN
 from .amex_parser import parse_amex_year_end
 from .amex_monthly_parser import parse_amex_monthly
 from .chase_parser import parse_chase_statement
+from .capital_one_cc_parser import parse_capital_one_cc_statement
 
 CC_DETECTORS = [
     # Year-end must come before monthly — both are Amex but different formats
     (re.compile(r'year-end summary', re.IGNORECASE), parse_amex_year_end),
     # Chase must come before Amex monthly — Chase also has "closing date" in its text
     (re.compile(r'chase\.com', re.IGNORECASE), parse_chase_statement),
+    # Capital One CC — distinct from Capital One bank (handled in bank_parser)
+    (re.compile(r'capitalone\.com', re.IGNORECASE), parse_capital_one_cc_statement),
     (re.compile(r'closing date\s*\d{2}/\d{2}/\d{2}', re.IGNORECASE), parse_amex_monthly),
 ]
 
