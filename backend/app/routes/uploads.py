@@ -55,7 +55,21 @@ async def upload_file(
         category_cache: dict = {}
 
         count = 0
+        skipped = 0
         for tx in raw_transactions:
+            # Skip exact duplicates already in the DB
+            exists = db.query(models.Transaction.id).filter(
+                models.Transaction.date == tx["date"],
+                models.Transaction.amount == tx["amount"],
+                models.Transaction.source == tx["source"],
+                models.Transaction.transaction_type == tx["transaction_type"],
+                models.Transaction.payee == tx.get("payee"),
+                models.Transaction.description == tx.get("description"),
+            ).first()
+            if exists:
+                skipped += 1
+                continue
+
             amex_category = tx.get("amex_category")
             if amex_category:
                 if amex_category not in category_cache:
@@ -76,6 +90,9 @@ async def upload_file(
                 category_id=category_id,
             ))
             count += 1
+
+        if skipped:
+            logger.info(f"Skipped {skipped} duplicate transactions from {file.filename}")
 
         db.commit()
         upload.status = "processed"
