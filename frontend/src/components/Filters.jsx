@@ -1,12 +1,14 @@
 import { useState } from 'react'
 
-const SOURCE_LABELS = { bank: 'Bank', credit_card: 'Credit Card', payroll: 'Payroll' }
+const SOURCE_LABELS = { bank: 'Bank', credit_card: 'Credit Card' }
+const TYPE_LABELS = { income: 'Income', expense: 'Expense', transfer: 'Transfer' }
 
 export default function Filters({ categories, onFilter }) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [sources, setSources] = useState([])
+  const [transactionTypes, setTransactionTypes] = useState([])
   const [search, setSearch] = useState('')
   const [minAmount, setMinAmount] = useState('')
   const [maxAmount, setMaxAmount] = useState('')
@@ -20,6 +22,7 @@ export default function Filters({ categories, onFilter }) {
       end_date: endDate ? `${endDate}T23:59:59` : undefined,
       category_ids: selectedCategories.length ? selectedCategories : undefined,
       sources: sources.length ? sources : undefined,
+      transaction_types: transactionTypes.length ? transactionTypes : undefined,
       search: search || undefined,
       min_amount: minAmount || undefined,
       max_amount: maxAmount || undefined,
@@ -27,7 +30,7 @@ export default function Filters({ categories, onFilter }) {
 
   const reset = () => {
     setStartDate(''); setEndDate(''); setSelectedCategories([])
-    setSources([]); setSearch(''); setMinAmount(''); setMaxAmount('')
+    setSources([]); setTransactionTypes([]); setSearch(''); setMinAmount(''); setMaxAmount('')
     onFilter({})
   }
 
@@ -67,20 +70,38 @@ export default function Filters({ categories, onFilter }) {
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Source</label>
-        <div className="flex gap-4">
-          {Object.entries(SOURCE_LABELS).map(([val, label]) => (
-            <label key={val} className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={sources.includes(val)}
-                onChange={() => toggleSet(setSources, val)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
-            </label>
-          ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Source</label>
+          <div className="flex gap-4">
+            {Object.entries(SOURCE_LABELS).map(([val, label]) => (
+              <label key={val} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={sources.includes(val)}
+                  onChange={() => toggleSet(setSources, val)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</label>
+          <div className="flex gap-4">
+            {Object.entries(TYPE_LABELS).map(([val, label]) => (
+              <label key={val} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={transactionTypes.includes(val)}
+                  onChange={() => toggleSet(setTransactionTypes, val)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 

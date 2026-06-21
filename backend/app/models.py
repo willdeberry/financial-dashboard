@@ -32,6 +32,7 @@ class Transaction(Base):
     source = Column(Enum("bank", "credit_card", "payroll"), nullable=False)
     transaction_type = Column(Enum("income", "expense", "transfer"), nullable=False)
     original_text = Column(Text)
+    excluded = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
         DateTime,

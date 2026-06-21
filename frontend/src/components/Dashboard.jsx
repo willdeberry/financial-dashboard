@@ -83,6 +83,14 @@ export default function Dashboard() {
     ))
   }, [categories])
 
+  const handleExcludedUpdated = useCallback((txId, excluded) => {
+    setTransactions(prev => prev.map(t =>
+      t.id === txId ? { ...t, excluded } : t
+    ))
+    // Refresh analytics since totals changed
+    fetchAll(filters, page)
+  }, [fetchAll, filters, page])
+
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
@@ -125,6 +133,7 @@ export default function Dashboard() {
             categories={categories}
             onCategoryUpdated={handleCategoryUpdated}
             onBulkCategoryUpdated={handleBulkCategoryUpdated}
+            onExcludedUpdated={handleExcludedUpdated}
           />
 
           {totalPages > 1 && (

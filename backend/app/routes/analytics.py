@@ -31,6 +31,7 @@ def analytics_summary(
     db: Session = Depends(get_db),
 ):
     query = db.query(_income_expr().label("income"), _expense_expr().label("expenses"), func.count(models.Transaction.id).label("count"))
+    query = query.filter(models.Transaction.excluded == False)
     if start_date:
         query = query.filter(models.Transaction.date >= start_date)
     if end_date:
@@ -56,6 +57,7 @@ def analytics_by_category(
         func.count(models.Transaction.id).label("count"),
     ).join(models.Category, models.Transaction.category_id == models.Category.id, isouter=True)
 
+    query = query.filter(models.Transaction.excluded == False)
     if start_date:
         query = query.filter(models.Transaction.date >= start_date)
     if end_date:
@@ -85,6 +87,7 @@ def analytics_monthly_trend(
         _income_expr().label("income"),
         _expense_expr().label("expenses"),
     )
+    query = query.filter(models.Transaction.excluded == False)
     if start_date:
         query = query.filter(models.Transaction.date >= start_date)
     if end_date:
@@ -128,7 +131,8 @@ def analytics_top_spenders(
         func.sum(models.Transaction.amount).label("total"),
         func.count(models.Transaction.id).label("count"),
     ).join(models.Category, models.Transaction.category_id == models.Category.id, isouter=True).filter(
-        models.Transaction.transaction_type == "expense"
+        models.Transaction.transaction_type == "expense",
+        models.Transaction.excluded == False,
     )
 
     if start_date:

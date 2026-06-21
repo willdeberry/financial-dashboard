@@ -38,6 +38,18 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transaction_ids: transactionIds, category_id: categoryId }),
     }),
+  setExcluded: (id, excluded) =>
+    request(`/transactions/${id}/excluded`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ excluded }),
+    }),
+  bulkSetExcluded: (transactionIds, excluded) =>
+    request('/transactions/bulk-excluded', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transaction_ids: transactionIds, excluded }),
+    }),
 
   getCategories: () => request('/categories'),
   createCategory: (data) =>

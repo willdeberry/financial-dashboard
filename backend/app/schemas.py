@@ -74,6 +74,7 @@ class TransactionResponse(TransactionBase):
     id: int
     category_id: Optional[int] = None
     category: Optional[CategoryResponse] = None
+    excluded: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -84,9 +85,18 @@ class TransactionCategoryUpdate(BaseModel):
     category_id: int
 
 
+class TransactionExcludedUpdate(BaseModel):
+    excluded: bool
+
+
 class TransactionBulkCategoryUpdate(BaseModel):
     transaction_ids: List[int]
     category_id: int
+
+
+class TransactionBulkExcludedUpdate(BaseModel):
+    transaction_ids: List[int]
+    excluded: bool
 
 
 class UploadHistoryResponse(BaseModel):
