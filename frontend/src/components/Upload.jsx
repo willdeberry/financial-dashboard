@@ -44,7 +44,7 @@ export default function Upload({ onSuccess }) {
     try {
       const res = await api.uploadFile(file, sourceType)
       setResult(res)
-      if (res.status === 'processed') setTimeout(onSuccess, 1800)
+      if (res.status === 'processed') setFile(null)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -141,7 +141,7 @@ export default function Upload({ onSuccess }) {
               : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
           }`}>
             {result.status === 'processed'
-              ? `✓ Imported ${result.transaction_count} transactions from "${result.filename}". Redirecting to dashboard…`
+              ? `✓ Imported ${result.transaction_count} transactions from "${result.filename}".`
               : `✗ ${result.error_message || 'Processing failed'}`}
           </div>
         )}
