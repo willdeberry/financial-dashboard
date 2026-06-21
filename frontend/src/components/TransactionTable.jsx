@@ -274,22 +274,31 @@ export default function TransactionTable({ transactions, categories, onCategoryU
                 <td className="px-5 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 capitalize">{t.transaction_type}</td>
                 <td className="px-5 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 capitalize">{t.source.replace('_', ' ')}</td>
                 <td className="px-3 py-3 text-center">
-                  <button
-                    onClick={() => handleToggleExcluded(t)}
-                    disabled={togglingId === t.id}
-                    title={t.excluded ? 'Excluded from totals — click to include' : 'Counted in totals — click to exclude'}
-                    className={`w-8 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 disabled:opacity-40 ${
-                      t.excluded
-                        ? 'bg-gray-300 dark:bg-gray-600'
-                        : 'bg-green-500'
-                    }`}
-                  >
+                  {t.transaction_type === 'transfer' ? (
                     <span
-                      className={`block w-3.5 h-3.5 bg-white rounded-full shadow transition-transform ${
-                        t.excluded ? 'translate-x-0.5' : 'translate-x-4'
+                      title="Transfers are never counted in totals"
+                      className="inline-flex w-8 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-not-allowed items-center"
+                    >
+                      <span className="block w-3.5 h-3.5 bg-white rounded-full shadow translate-x-0.5" />
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleToggleExcluded(t)}
+                      disabled={togglingId === t.id}
+                      title={t.excluded ? 'Excluded from totals — click to include' : 'Counted in totals — click to exclude'}
+                      className={`w-8 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 disabled:opacity-40 ${
+                        t.excluded
+                          ? 'bg-gray-300 dark:bg-gray-600'
+                          : 'bg-green-500'
                       }`}
-                    />
-                  </button>
+                    >
+                      <span
+                        className={`block w-3.5 h-3.5 bg-white rounded-full shadow transition-transform ${
+                          t.excluded ? 'translate-x-0.5' : 'translate-x-4'
+                        }`}
+                      />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
