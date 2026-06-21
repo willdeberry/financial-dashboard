@@ -50,6 +50,18 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transaction_ids: transactionIds, excluded }),
     }),
+  updateTransactionType: (id, transaction_type) =>
+    request(`/transactions/${id}/type`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transaction_type }),
+    }),
+  bulkUpdateType: (transactionIds, transaction_type) =>
+    request('/transactions/bulk-type', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transaction_ids: transactionIds, transaction_type }),
+    }),
 
   getCategories: () => request('/categories'),
   createCategory: (data) =>

@@ -89,6 +89,10 @@ class TransactionExcludedUpdate(BaseModel):
     excluded: bool
 
 
+class TransactionTypeUpdate(BaseModel):
+    transaction_type: TransactionTypeEnum
+
+
 class TransactionBulkCategoryUpdate(BaseModel):
     transaction_ids: List[int]
     category_id: int
@@ -97,6 +101,11 @@ class TransactionBulkCategoryUpdate(BaseModel):
 class TransactionBulkExcludedUpdate(BaseModel):
     transaction_ids: List[int]
     excluded: bool
+
+
+class TransactionBulkTypeUpdate(BaseModel):
+    transaction_ids: List[int]
+    transaction_type: TransactionTypeEnum
 
 
 class UploadHistoryResponse(BaseModel):

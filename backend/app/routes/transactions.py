@@ -106,6 +106,37 @@ def bulk_update_excluded(
     return {"updated": updated}
 
 
+@router.put("/transactions/bulk-type")
+def bulk_update_type(
+    update: schemas.TransactionBulkTypeUpdate,
+    db: Session = Depends(get_db),
+):
+    if not update.transaction_ids:
+        raise HTTPException(status_code=400, detail="No transaction IDs provided")
+    updated = (
+        db.query(models.Transaction)
+        .filter(models.Transaction.id.in_(update.transaction_ids))
+        .update({"transaction_type": update.transaction_type}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated}
+
+
+@router.put("/transactions/{transaction_id}/type", response_model=schemas.TransactionResponse)
+def update_transaction_type(
+    transaction_id: int,
+    update: schemas.TransactionTypeUpdate,
+    db: Session = Depends(get_db),
+):
+    transaction = db.query(models.Transaction).filter(models.Transaction.id == transaction_id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    transaction.transaction_type = update.transaction_type
+    db.commit()
+    db.refresh(transaction)
+    return transaction
+
+
 @router.put("/transactions/{transaction_id}/category", response_model=schemas.TransactionResponse)
 def update_transaction_category(
     transaction_id: int,

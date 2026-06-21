@@ -8,30 +8,31 @@ const TYPE_STYLE = {
   transfer: 'text-blue-600 dark:text-blue-400',
 }
 
+const TRANSACTION_TYPES = ['income', 'expense', 'transfer']
+
 const COLS = [
   { key: 'date', label: 'Date' },
   { key: 'payee', label: 'Payee / Description' },
   { key: 'amount', label: 'Amount' },
   { key: 'category', label: 'Category' },
+  { key: 'type', label: 'Type' },
+  { key: 'source', label: 'Source' },
 ]
 
-export default function TransactionTable({ transactions, categories, onCategoryUpdated, onBulkCategoryUpdated, onExcludedUpdated }) {
-  const [editingId, setEditingId] = useState(null)
+export default function TransactionTable({ transactions, categories, onCategoryUpdated, onBulkCategoryUpdated, onTypeUpdated }) {
+  const [editingCatId, setEditingCatId] = useState(null)
+  const [editingTypeId, setEditingTypeId] = useState(null)
   const [selected, setSelected] = useState(new Set())
   const [bulkCategoryId, setBulkCategoryId] = useState('')
+  const [bulkType, setBulkType] = useState('')
   const [bulkSaving, setBulkSaving] = useState(false)
-  const [togglingId, setTogglingId] = useState(null)
 
   const allIds = transactions.map(t => t.id)
   const allSelected = allIds.length > 0 && allIds.every(id => selected.has(id))
   const someSelected = selected.size > 0
 
   function toggleAll() {
-    if (allSelected) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(allIds))
-    }
+    setSelected(allSelected ? new Set() : new Set(allIds))
   }
 
   function toggleOne(id) {
@@ -51,46 +52,36 @@ export default function TransactionTable({ transactions, categories, onCategoryU
     } catch (err) {
       alert('Failed to update: ' + err.message)
     }
-    setEditingId(null)
+    setEditingCatId(null)
   }
 
-  const handleToggleExcluded = async (tx) => {
-    setTogglingId(tx.id)
+  const handleTypeChange = async (txId, type) => {
+    if (!type) return
     try {
-      await api.setExcluded(tx.id, !tx.excluded)
-      onExcludedUpdated(tx.id, !tx.excluded)
+      await api.updateTransactionType(txId, type)
+      onTypeUpdated(txId, type)
     } catch (err) {
       alert('Failed to update: ' + err.message)
-    } finally {
-      setTogglingId(null)
     }
+    setEditingTypeId(null)
   }
 
   const handleBulkApply = async () => {
-    if (!bulkCategoryId || selected.size === 0) return
-    const categoryId = parseInt(bulkCategoryId, 10)
     setBulkSaving(true)
     try {
       const ids = [...selected]
-      await api.bulkUpdateCategory(ids, categoryId)
-      onBulkCategoryUpdated(ids, categoryId)
+      if (bulkCategoryId) {
+        const categoryId = parseInt(bulkCategoryId, 10)
+        await api.bulkUpdateCategory(ids, categoryId)
+        onBulkCategoryUpdated(ids, categoryId)
+      }
+      if (bulkType) {
+        await api.bulkUpdateType(ids, bulkType)
+        ids.forEach(id => onTypeUpdated(id, bulkType))
+      }
       setSelected(new Set())
       setBulkCategoryId('')
-    } catch (err) {
-      alert('Failed to update: ' + err.message)
-    } finally {
-      setBulkSaving(false)
-    }
-  }
-
-  const handleBulkExclude = async (excluded) => {
-    if (selected.size === 0) return
-    setBulkSaving(true)
-    try {
-      const ids = [...selected]
-      await api.bulkSetExcluded(ids, excluded)
-      ids.forEach(id => onExcludedUpdated(id, excluded))
-      setSelected(new Set())
+      setBulkType('')
     } catch (err) {
       alert('Failed to update: ' + err.message)
     } finally {
@@ -100,10 +91,10 @@ export default function TransactionTable({ transactions, categories, onCategoryU
 
   const exportCsv = () => {
     const rows = [
-      ['Date', 'Payee', 'Description', 'Amount', 'Type', 'Source', 'Category', 'Excluded'],
+      ['Date', 'Payee', 'Description', 'Amount', 'Type', 'Source', 'Category'],
       ...transactions.map(t => [
         formatDate(t.date), t.payee || '', t.description || '',
-        t.amount, t.transaction_type, t.source, t.category?.name || 'Uncategorized', t.excluded ? 'Yes' : 'No',
+        t.amount, t.transaction_type, t.source, t.category?.name || 'Uncategorized',
       ]),
     ]
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -129,7 +120,6 @@ export default function TransactionTable({ transactions, categories, onCategoryU
         </button>
       </div>
 
-      {/* Bulk action bar */}
       {someSelected && (
         <div className="flex items-center gap-3 px-5 py-2.5 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex-wrap">
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
@@ -145,31 +135,23 @@ export default function TransactionTable({ transactions, categories, onCategoryU
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          <select
+            value={bulkType}
+            onChange={e => setBulkType(e.target.value)}
+            className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Change type…</option>
+            {TRANSACTION_TYPES.map(t => (
+              <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+            ))}
+          </select>
           <button
             onClick={handleBulkApply}
-            disabled={!bulkCategoryId || bulkSaving}
+            disabled={(!bulkCategoryId && !bulkType) || bulkSaving}
             className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
           >
             {bulkSaving ? 'Applying…' : 'Apply'}
           </button>
-          <div className="flex items-center gap-1.5 ml-2 border-l border-blue-200 dark:border-blue-700 pl-3">
-            <button
-              onClick={() => handleBulkExclude(true)}
-              disabled={bulkSaving}
-              className="px-3 py-1 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-40 transition-colors"
-              title="Exclude selected from totals and charts"
-            >
-              Exclude
-            </button>
-            <button
-              onClick={() => handleBulkExclude(false)}
-              disabled={bulkSaving}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 transition-colors"
-              title="Re-include selected in totals and charts"
-            >
-              Include
-            </button>
-          </div>
           <button
             onClick={() => setSelected(new Set())}
             className="ml-auto text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -197,24 +179,19 @@ export default function TransactionTable({ transactions, categories, onCategoryU
                   {col.label}
                 </th>
               ))}
-              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Source</th>
-              <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider" title="Whether this transaction is counted in totals and charts">
-                Counted
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-12 text-center text-gray-400 dark:text-gray-500 text-sm">
+                <td colSpan={7} className="px-5 py-12 text-center text-gray-400 dark:text-gray-500 text-sm">
                   No transactions found. Upload a statement to get started.
                 </td>
               </tr>
             ) : transactions.map(t => (
               <tr
                 key={t.id}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors group ${selected.has(t.id) ? 'bg-blue-50 dark:bg-blue-900/10' : ''} ${t.excluded ? 'opacity-50' : ''}`}
+                className={`hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors group ${selected.has(t.id) ? 'bg-blue-50 dark:bg-blue-900/10' : ''}`}
               >
                 <td className="pl-5 pr-2 py-3">
                   <input
@@ -228,21 +205,21 @@ export default function TransactionTable({ transactions, categories, onCategoryU
                   {formatDate(t.date)}
                 </td>
                 <td className="px-5 py-3 max-w-xs">
-                  <div className={`font-medium text-gray-900 dark:text-white truncate ${t.excluded ? 'line-through' : ''}`}>{t.payee || '—'}</div>
+                  <div className="font-medium text-gray-900 dark:text-white truncate">{t.payee || '—'}</div>
                   {t.description && t.description !== t.payee && (
                     <div className="text-xs text-gray-400 dark:text-gray-500 truncate">{t.description}</div>
                   )}
                 </td>
-                <td className={`px-5 py-3 whitespace-nowrap font-semibold ${TYPE_STYLE[t.transaction_type]} ${t.excluded ? 'line-through' : ''}`}>
+                <td className={`px-5 py-3 whitespace-nowrap font-semibold ${TYPE_STYLE[t.transaction_type]}`}>
                   {t.transaction_type === 'income' ? '+' : t.transaction_type === 'expense' ? '−' : ''}
                   {formatCurrency(t.amount)}
                 </td>
                 <td className="px-5 py-3">
-                  {editingId === t.id ? (
+                  {editingCatId === t.id ? (
                     <select
                       defaultValue={t.category_id || ''}
                       onChange={e => handleCategoryChange(t.id, e.target.value)}
-                      onBlur={() => setEditingId(null)}
+                      onBlur={() => setEditingCatId(null)}
                       autoFocus
                       className="text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -253,7 +230,7 @@ export default function TransactionTable({ transactions, categories, onCategoryU
                     </select>
                   ) : (
                     <button
-                      onClick={() => setEditingId(t.id)}
+                      onClick={() => setEditingCatId(t.id)}
                       className="flex items-center gap-1.5 group/cat"
                       title="Click to change category"
                     >
@@ -271,35 +248,31 @@ export default function TransactionTable({ transactions, categories, onCategoryU
                     </button>
                   )}
                 </td>
-                <td className="px-5 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 capitalize">{t.transaction_type}</td>
-                <td className="px-5 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 capitalize">{t.source.replace('_', ' ')}</td>
-                <td className="px-3 py-3 text-center">
-                  {t.transaction_type === 'transfer' ? (
-                    <span
-                      title="Transfers are never counted in totals"
-                      className="inline-flex w-8 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-not-allowed items-center"
+                <td className="px-5 py-3 whitespace-nowrap">
+                  {editingTypeId === t.id ? (
+                    <select
+                      defaultValue={t.transaction_type}
+                      onChange={e => handleTypeChange(t.id, e.target.value)}
+                      onBlur={() => setEditingTypeId(null)}
+                      autoFocus
+                      className="text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <span className="block w-3.5 h-3.5 bg-white rounded-full shadow translate-x-0.5" />
-                    </span>
+                      {TRANSACTION_TYPES.map(type => (
+                        <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                      ))}
+                    </select>
                   ) : (
                     <button
-                      onClick={() => handleToggleExcluded(t)}
-                      disabled={togglingId === t.id}
-                      title={t.excluded ? 'Excluded from totals — click to include' : 'Counted in totals — click to exclude'}
-                      className={`w-8 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 disabled:opacity-40 ${
-                        t.excluded
-                          ? 'bg-gray-300 dark:bg-gray-600'
-                          : 'bg-green-500'
-                      }`}
+                      onClick={() => setEditingTypeId(t.id)}
+                      className={`flex items-center gap-1.5 group/type text-xs capitalize ${TYPE_STYLE[t.transaction_type]}`}
+                      title="Click to change type"
                     >
-                      <span
-                        className={`block w-3.5 h-3.5 bg-white rounded-full shadow transition-transform ${
-                          t.excluded ? 'translate-x-0.5' : 'translate-x-4'
-                        }`}
-                      />
+                      {t.transaction_type}
+                      <span className="text-gray-300 dark:text-gray-600 opacity-0 group-hover/type:opacity-100 transition-opacity">✏</span>
                     </button>
                   )}
                 </td>
+                <td className="px-5 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 capitalize">{t.source.replace('_', ' ')}</td>
               </tr>
             ))}
           </tbody>
